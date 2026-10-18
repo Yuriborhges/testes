@@ -4,8 +4,11 @@ local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local guiParent = player:WaitForChild("PlayerGui")
-local previous = guiParent:FindFirstChild("PainelVotosBrasil")
-if previous then previous:Destroy() end
+-- Limpa as duas versoes anteriores da interface.
+for _, name in ipairs({"PainelVotosBrasil", "SimuladorVotosBrasil"}) do
+    local previous = guiParent:FindFirstChild(name)
+    if previous then previous:Destroy() end
+end
 
 local function make(class, properties, parent)
     local obj = Instance.new(class)
