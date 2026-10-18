@@ -1,4 +1,4 @@
--- Painel local de votos - versao 4
+-- Painel local de votos - versao 5
 -- Apenas simula contagens; nao altera os apoios oficiais do servidor.
 local Players = game:GetService("Players")
 local Input = game:GetService("UserInputService")
@@ -30,8 +30,8 @@ end
 local white=Color3.fromRGB(255,255,255)
 local green=Color3.fromRGB(30,180,105)
 local frame=create("Frame",gui,{
-    Name="Janela",Size=UDim2.fromOffset(340,300),
-    Position=UDim2.new(.5,-170,.5,-150),
+    Name="Janela",Size=UDim2.fromOffset(340,365),
+    Position=UDim2.new(.5,-170,.5,-182),
     BackgroundColor3=Color3.fromRGB(17,24,39),
     BorderSizePixel=0,ZIndex=20,Active=true
 })
@@ -76,7 +76,9 @@ local field=create("TextBox",frame,{
 })
 round(field,8)
 local add=button("ADICIONAR VOTOS",UDim2.fromOffset(20,178),UDim2.fromOffset(300,43),green)
-local reset=button("ZERAR CONTADOR",UDim2.fromOffset(20,232),UDim2.fromOffset(300,40),Color3.fromRGB(168,65,65))
+local npc=button("SIMULAR NPC +100",UDim2.fromOffset(20,232),UDim2.fromOffset(300,40),Color3.fromRGB(44,111,187))
+local reset=button("ZERAR CONTADOR",UDim2.fromOffset(20,283),UDim2.fromOffset(300,40),Color3.fromRGB(168,65,65))
+label(frame,"Somente visual: nao altera o apoio do jogo.",UDim2.fromOffset(20,329),UDim2.fromOffset(300,24),12,white,40)
 local votes=0
 add.MouseButton1Click:Connect(function()
     local n=tonumber(field.Text)
@@ -89,6 +91,10 @@ add.MouseButton1Click:Connect(function()
     count.Text="VOTOS SIMULADOS: "..tostring(votes)
     field.Text=""
 end)
+npc.MouseButton1Click:Connect(function()
+    votes=votes+100
+    count.Text="VOTOS SIMULADOS: "..tostring(votes)
+end)
 reset.MouseButton1Click:Connect(function()
     votes=0
     count.Text="VOTOS SIMULADOS: 0"
@@ -97,8 +103,8 @@ close.MouseButton1Click:Connect(function() frame.Visible=false end)
 local collapsed=false
 min.MouseButton1Click:Connect(function()
     collapsed=not collapsed
-    frame.Size=collapsed and UDim2.fromOffset(340,52) or UDim2.fromOffset(340,300)
-    for _,obj in ipairs({count,field,add,reset}) do obj.Visible=not collapsed end
+    frame.Size=collapsed and UDim2.fromOffset(340,52) or UDim2.fromOffset(340,365)
+    for _,obj in ipairs({count,field,add,npc,reset}) do obj.Visible=not collapsed end
     min.Text=collapsed and "+" or "-"
 end)
 local drag=false
