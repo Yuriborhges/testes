@@ -1,132 +1,124 @@
--- Painel de votos para simulacao local no Roblox Studio.
--- Nao modifica os valores oficiais registrados no servidor.
+-- Painel local de votos - versao 4
+-- Apenas simula contagens; nao altera os apoios oficiais do servidor.
 local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
+local Input = game:GetService("UserInputService")
 local player = Players.LocalPlayer
-local guiParent = player:WaitForChild("PlayerGui")
--- Limpa as duas versoes anteriores da interface.
-for _, name in ipairs({"PainelVotosBrasil", "SimuladorVotosBrasil"}) do
-    local previous = guiParent:FindFirstChild(name)
-    if previous then previous:Destroy() end
+local pg = player:WaitForChild("PlayerGui")
+
+for _,name in ipairs({"PainelVotosBrasil","SimuladorVotosBrasil","PainelVotosBrasilV4"}) do
+    local old = pg:FindFirstChild(name)
+    if old then old:Destroy() end
 end
 
-local function make(class, properties, parent)
+local gui = Instance.new("ScreenGui")
+gui.Name = "PainelVotosBrasilV4"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.DisplayOrder = 9999
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+gui.Parent = pg
+
+local function create(class, parent, props)
     local obj = Instance.new(class)
-    for key,value in pairs(properties) do obj[key]=value end
-    obj.Parent=parent
+    for k,v in pairs(props) do obj[k] = v end
+    obj.Parent = parent
     return obj
 end
-local function round(obj, radius)
-    make("UICorner",{CornerRadius=UDim.new(0,radius)},obj)
+local function round(obj, n)
+    create("UICorner",obj,{CornerRadius=UDim.new(0,n)})
 end
-local white=Color3.fromRGB(245,247,250)
+local white=Color3.fromRGB(255,255,255)
 local green=Color3.fromRGB(30,180,105)
-local gui=make("ScreenGui",{Name="PainelVotosBrasil",ResetOnSpawn=false,DisplayOrder=10},guiParent)
-local frame=make("Frame",{
-    Size=UDim2.fromOffset(330,300),
-    Position=UDim2.new(.5,-165,.5,-150),
+local frame=create("Frame",gui,{
+    Name="Janela",Size=UDim2.fromOffset(340,300),
+    Position=UDim2.new(.5,-170,.5,-150),
     BackgroundColor3=Color3.fromRGB(17,24,39),
-    BorderSizePixel=0,Active=true
-},gui)
-round(frame,16)
-make("UIStroke",{Color=green,Thickness=1.5,Transparency=.3},frame)
-
-local header=make("Frame",{
-    Size=UDim2.new(1,0,0,55),
+    BorderSizePixel=0,ZIndex=20,Active=true
+})
+round(frame,14)
+create("UIStroke",frame,{Color=green,Thickness=2})
+local header=create("Frame",frame,{
+    Name="Barra",Size=UDim2.new(1,0,0,52),
     BackgroundColor3=Color3.fromRGB(25,42,48),
-    BorderSizePixel=0,Active=true
-},frame)
-round(header,16)
-make("TextLabel",{
-    Size=UDim2.new(1,-105,1,0),Position=UDim2.fromOffset(14,0),
-    Text="PAINEL DE VOTOS",TextColor3=white,TextSize=17,
-    Font=Enum.Font.GothamBold,BackgroundTransparency=1,
-    TextXAlignment=Enum.TextXAlignment.Left
-},header)
-local minimize=make("TextButton",{
-    Size=UDim2.fromOffset(30,30),Position=UDim2.new(1,-75,0,12),
-    Text="-",TextSize=21,Font=Enum.Font.GothamBold,TextColor3=white,
-    BackgroundColor3=Color3.fromRGB(55,70,82)
-},header)
-round(minimize,8)
-local close=make("TextButton",{
-    Size=UDim2.fromOffset(30,30),Position=UDim2.new(1,-39,0,12),
-    Text="X",TextSize=15,Font=Enum.Font.GothamBold,TextColor3=white,
-    BackgroundColor3=Color3.fromRGB(180,55,65)
-},header)
-round(close,8)
-local content=make("Frame",{
-    Position=UDim2.fromOffset(0,55),Size=UDim2.new(1,0,1,-55),
-    BackgroundTransparency=1
-},frame)
-local counter=make("TextLabel",{
-    Position=UDim2.fromOffset(15,12),Size=UDim2.new(1,-30,0,48),
-    Text="VOTOS SIMULADOS: 0",TextColor3=green,TextSize=19,
-    Font=Enum.Font.GothamBold,BackgroundTransparency=1
-},content)
-local amount=make("TextBox",{
-    Position=UDim2.fromOffset(20,72),Size=UDim2.new(1,-40,0,43),
-    Text="",PlaceholderText="Digite a quantidade de votos",
-    ClearTextOnFocus=false,TextColor3=white,
-    PlaceholderColor3=Color3.fromRGB(155,165,175),
-    TextSize=15,Font=Enum.Font.Gotham,
-    BackgroundColor3=Color3.fromRGB(35,48,62)
-},content)
-round(amount,9)
-local add=make("TextButton",{
-    Position=UDim2.fromOffset(20,126),Size=UDim2.new(1,-40,0,43),
-    Text="ADICIONAR VOTOS",TextColor3=white,TextSize=15,
-    Font=Enum.Font.GothamBold,BackgroundColor3=green
-},content)
-round(add,9)
-local reset=make("TextButton",{
-    Position=UDim2.fromOffset(20,180),Size=UDim2.new(1,-40,0,37),
-    Text="ZERAR CONTADOR",TextColor3=white,TextSize=14,
-    Font=Enum.Font.GothamBold,BackgroundColor3=Color3.fromRGB(170,65,65)
-},content)
-round(reset,9)
+    BorderSizePixel=0,ZIndex=21,Active=true
+})
+round(header,12)
+local function label(parent, txt, pos, size, fontsize, color, z)
+    return create("TextLabel",parent,{
+        Text=txt,TextColor3=color or white,TextSize=fontsize,
+        Font=Enum.Font.GothamBold,BackgroundTransparency=1,
+        Position=pos,Size=size,ZIndex=z or 30,
+        Visible=true,TextTransparency=0,TextStrokeTransparency=1,
+        TextWrapped=true
+    })
+end
+local function button(txt,pos,size,color)
+    local obj=create("TextButton",frame,{
+        Text=txt,TextColor3=white,TextSize=15,
+        Font=Enum.Font.GothamBold,TextTransparency=0,
+        BackgroundColor3=color,BorderSizePixel=0,
+        Position=pos,Size=size,ZIndex=31,AutoButtonColor=true
+    })
+    round(obj,8)
+    return obj
+end
+label(frame,"PAINEL DE VOTOS",UDim2.fromOffset(12,7),UDim2.fromOffset(215,38),17,white,40)
+local close=button("X",UDim2.new(1,-38,0,11),UDim2.fromOffset(28,30),Color3.fromRGB(180,55,65))
+local min=button("-",UDim2.new(1,-73,0,11),UDim2.fromOffset(28,30),Color3.fromRGB(67,78,87))
+local count=label(frame,"VOTOS SIMULADOS: 0",UDim2.fromOffset(10,66),UDim2.fromOffset(320,50),19,green,40)
+local field=create("TextBox",frame,{
+    Name="Quantidade",Text="",PlaceholderText="Digite a quantidade de votos",
+    TextColor3=white,PlaceholderColor3=Color3.fromRGB(180,180,180),
+    TextSize=15,Font=Enum.Font.Gotham,TextTransparency=0,
+    BackgroundColor3=Color3.fromRGB(38,51,64),
+    Position=UDim2.fromOffset(20,123),Size=UDim2.fromOffset(300,43),
+    ZIndex=40,ClearTextOnFocus=false
+})
+round(field,8)
+local add=button("ADICIONAR VOTOS",UDim2.fromOffset(20,178),UDim2.fromOffset(300,43),green)
+local reset=button("ZERAR CONTADOR",UDim2.fromOffset(20,232),UDim2.fromOffset(300,40),Color3.fromRGB(168,65,65))
 local votes=0
 add.MouseButton1Click:Connect(function()
-    local n=tonumber(amount.Text)
+    local n=tonumber(field.Text)
     if not n or n~=math.floor(n) or n<1 or n>1000000000 then
-        amount.Text=""
-        amount.PlaceholderText="Digite um inteiro de 1 a 1 bilhao"
+        field.Text=""
+        field.PlaceholderText="Numero inteiro de 1 a 1 bilhao"
         return
     end
     votes=votes+n
-    counter.Text="VOTOS SIMULADOS: "..tostring(votes)
-    amount.Text=""
+    count.Text="VOTOS SIMULADOS: "..tostring(votes)
+    field.Text=""
 end)
 reset.MouseButton1Click:Connect(function()
     votes=0
-    counter.Text="VOTOS SIMULADOS: 0"
+    count.Text="VOTOS SIMULADOS: 0"
 end)
 close.MouseButton1Click:Connect(function() frame.Visible=false end)
 local collapsed=false
-minimize.MouseButton1Click:Connect(function()
+min.MouseButton1Click:Connect(function()
     collapsed=not collapsed
-    content.Visible=not collapsed
-    frame.Size=collapsed and UDim2.fromOffset(330,55) or UDim2.fromOffset(330,300)
-    minimize.Text=collapsed and "+" or "-"
+    frame.Size=collapsed and UDim2.fromOffset(340,52) or UDim2.fromOffset(340,300)
+    for _,obj in ipairs({count,field,add,reset}) do obj.Visible=not collapsed end
+    min.Text=collapsed and "+" or "-"
 end)
-local dragging=false
-local dragStart,startPos
+local drag=false
+local start,initial
 header.InputBegan:Connect(function(event)
     if event.UserInputType==Enum.UserInputType.MouseButton1 or event.UserInputType==Enum.UserInputType.Touch then
-        dragging=true dragStart=event.Position startPos=frame.Position
+        drag=true start=event.Position initial=frame.Position
     end
 end)
-UIS.InputEnded:Connect(function(event)
-    if event.UserInputType==Enum.UserInputType.MouseButton1 or event.UserInputType==Enum.UserInputType.Touch then dragging=false end
+Input.InputEnded:Connect(function(event)
+    if event.UserInputType==Enum.UserInputType.MouseButton1 or event.UserInputType==Enum.UserInputType.Touch then drag=false end
 end)
-UIS.InputChanged:Connect(function(event)
-    if dragging and (event.UserInputType==Enum.UserInputType.MouseMovement or event.UserInputType==Enum.UserInputType.Touch) then
-        local delta=event.Position-dragStart
-        frame.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+delta.X,startPos.Y.Scale,startPos.Y.Offset+delta.Y)
+Input.InputChanged:Connect(function(event)
+    if drag and (event.UserInputType==Enum.UserInputType.MouseMovement or event.UserInputType==Enum.UserInputType.Touch) then
+        local d=event.Position-start
+        frame.Position=UDim2.new(initial.X.Scale,initial.X.Offset+d.X,initial.Y.Scale,initial.Y.Offset+d.Y)
     end
 end)
-UIS.InputBegan:Connect(function(event,processed)
-    if not processed and event.KeyCode==Enum.KeyCode.PageUp then
+Input.InputBegan:Connect(function(event,used)
+    if not used and event.KeyCode==Enum.KeyCode.PageUp then
         frame.Visible=not frame.Visible
     end
 end)
